@@ -1,13 +1,16 @@
 var People = require('./models/people');
 var Item = require('./models/item');
+var Task = require('./models/task');
 var Resource = require('./models/resource');
 
 var random = require('node-random');
 var importcsv = require('./importcsv');
-var async = require('async')
+var async = require('async');
+var _ = require('lodash');
 
 //create a guy
 //createPerson()
+sim()
 
 //start the game loop
 var interval = setInterval(checkTime, 60000)
@@ -17,14 +20,13 @@ var interval = setInterval(checkTime, 60000)
 function checkTime(){
 	var d = new Date
 	if(d.getMinutes() % 1 == 0){
-		sim();
+		//sim();
 	}
 }
 
+//find user
 function sim(){
 	console.log('sim called every 5 mins')
-
-	var healthToTake = 2;
 
 		async.series([
 		function(callback){
@@ -37,14 +39,7 @@ function sim(){
 		    		callback(null)
 		    	}
 			});
-		},
-		function(callback){
-			random.integers({minimum:0,maximum:5}, function(e,n){
-				healthToTake = n;
-				callback(null);
-			})
-		}	
-		], function(err, results){
+		}], function(err, results){
 			if(err){
 				console.log('modify person aborted, random.org quota exhausted')
 				return
@@ -57,48 +52,151 @@ function sim(){
 			People.random(query, function(err, person){
 				if(err){
 					console.log(err)
+					return	
+				}
+
+				if(!person){
+					console.log('No one found')
 					return
-					
 				}
 
 				console.log('found a person')
 				console.log(person)
-				//check health
-				if(person.health <= 0){
-					//death
-				}
-
-				//check pregnancies due
-
-				//person wants to sell something
-
-				//person wants to buy something
-
-				//minus health slightly
-				person.health -= healthToTake;
-					//if health <= 0 then death
-
-				//set last update date
-				person.lastUpdate = Date.now()
-
-				person.save(function(err, person){
-					if(err){
-						console.log(err)
-						return	
-						
-					}
-					
-					console.log('save a person')		
-					console.log(person)
-				})
-
-		})
+				modifyUser(person)
+			})
 
 		
+		})
+}
+
+//after find user, make changes
+function modifyUser(person){
+
+	var healthToTake = 2;
+
+	async.series([
+		function(callback){
+			console.log('calc minus health')
+			random.integers({minimum:0,maximum:5}, function(e,n){
+				healthToTake = n;
+				callback(null);
+			})
+		},		
+		function(callback){
+			console.log('minus health')
+			//minus health slightly
+			person.health -= healthToTake;
+			callback(null)
+		},
+		function(callback){
+			console.log('check tasks')
+			//check if a task is in duration
+			console.log(_.where(person.tasks, {'type':'water'}));
+			//if(_.where(person.tasks, {'type':'water'})
+
+				//if no tasks, create a task (find something to do)
+				//check if person has water
+				Item
+					.find({owner_id: person._id, type: {food: true}})
+					.exec(function(err, items){
+						if(err){
+							console.log(err)
+							return	
+						}
+
+						if(items.length == 0){
+							console.log('No water items found')
+
+							//find water resource
+							Resource
+								.findOne({type: 'water'})
+								.exec(function(err, resource){
+									if(err){
+										console.log(err)
+										callback(null)	
+									}
+
+									if(!resource){
+										console.log('no water resources found')
+										callback(null)
+									}
+
+									console.log(resource)
+
+									//create task to goto water
+									// person.tasks.push(JSON.stringify({
+									// 	type: 'water',
+									// 	priority: 0,
+									// 	description: 'Goto water',
+									// 	location: resource.location,
+									// 	duration: 1,
+									// 	created: Date.now()
+									// }))
+
+									//create task to drink water
+									var newTask = new Task({
+										type: 'water',
+										priority: 1,
+										description: 'Drink water',
+										location: resource.location,
+										duration: 1,
+										created: Date.now()
+									});
+
+									People.update({'_id':person._id},
+									{$push:{ tasks: newTask}},
+									function(err) {
+										if(err){
+									        console.log(err);
+										}else{
+											console.log('updated')
+										}
+
+									})
+
+									callback(null)
+
+								})
+
+
+							return
+						}else{
+							console.log('water item found')
+							//create task to drink water item
+							callback(null)
+						}
+
+
+					})
+		},
+		function(callback){
+			//check health
+			if(person.health <= 0){
+				//death
+				person.DOD = Date.now()
+			}
+			callback(null)
+		}				
+	],function(){
+		//set last update date
+		person.lastUpdate = Date.now()
+
+		person.save(function(err, person){
+			if(err){
+				console.log(err)
+				return	
+				
+			}
+			
+			console.log('save a person')		
+			console.log(person)
+		})
+
+
 	})
 
-
 }
+
 
 function createPerson(){
 

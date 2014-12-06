@@ -13,8 +13,11 @@ var resourceSchema = mongoose.Schema({
 		type: mongoose.Schema.ObjectId,
 		ref: 'Item'
 	}],
-	recharge: Boolean
-
+	recharge: Boolean,
+	created: {
+		type: Date,
+		default: Date.now()
+	}
 })
 
 module.exports = mongoose.model('Resource', resourceSchema)

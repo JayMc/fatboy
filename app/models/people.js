@@ -1,5 +1,19 @@
 var mongoose = require('mongoose');
 
+var taskSchema = mongoose.Schema({
+	type: String,
+	priority: Number,
+	description: String,
+	location: {
+			lat: Number,
+			lng: Number
+	},
+	duration: Number,
+	created: Date,
+	completed: Date
+
+})
+
 var peopleSchema = mongoose.Schema({
 	name: {
 		first: String,
@@ -71,6 +85,7 @@ var peopleSchema = mongoose.Schema({
 			},
 		}]
 	},
+	tasks: [taskSchema], //tast Schema here (not Model) allows us to use $push
 	lastUpdate: Date
 })
 

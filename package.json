@@ -5,6 +5,7 @@
     "csvtojson": "^0.3.17",
     "express": "^4.10.1",
     "fast-csv": "^0.5.3",
+    "lodash": "^2.4.1",
     "mongoose": "^3.8.18",
     "node-random": "^1.0.0"
   },

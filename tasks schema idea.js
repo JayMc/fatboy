@@ -4,8 +4,9 @@ tasks
 		priority: 0-100 //lowest is first
 		decsription:
 		location: //if task is to travel - destination
-		created:
-		completed:
+		created: 
+		completed: 
+		duration: //how long it should take, travel should take a while, drinking water can be done quickly
 
 	}
 
