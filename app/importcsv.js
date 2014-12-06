@@ -48,7 +48,7 @@ module.exports = {
 		   	//console.log(results[0])
 			//return results.shift();
 			//return results[0];
-			cb(results[0])
+			cb(self.capitaliseFirstLetter(results[0]))
 		});
 
 		//read from file
@@ -72,6 +72,10 @@ module.exports = {
 	  }
 
 	  return array;
+	},
+	capitaliseFirstLetter: function(string)
+	{
+	    return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 	
 }

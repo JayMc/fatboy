@@ -1,4 +1,6 @@
 var People = require('./models/people');
+var Item = require('./models/item');
+
 var random = require('node-random');
 var importcsv = require('./importcsv');
 var async = require('async')
@@ -13,7 +15,6 @@ var interval = setInterval(checkTime, 60000)
 //get Date obj and checks mins of equal to 00 or something
 function checkTime(){
 	var d = new Date
-	console.log('checking mins '+d.getMinutes())
 	if(d.getMinutes() % 5 == 0){
 		sim();
 	}
@@ -44,24 +45,34 @@ function createPerson(){
 		console.log(b)
 	})
 
-	var location = {loc: {lat:0, lng: 0}};
+	var location = {type:'', loc: {lat:0, lng: 0}};
 	var name = {};
 	var gender = '';
 	var money = 0;
+	var health = 100;
 
 	async.series([
 		function(callback){
+			//first check remain quota from random.org
+			random.quota(function(error, quota) {
+		    	console.log("Remaining bytes: " + quota)
+		    	if(quota<=1){
+		    		callback(true)
+		    	}else{
+		    		callback(null)
+		    	}
+			});
+		},		
+		function(callback){
 			importcsv.getFromList({type:'malefirstname'}, function(b){
-				name.first = b
-				callback(null)
-
+				name.first = b;
+				callback(null);
 			})
 		},
 		function(callback){
 			importcsv.getFromList({type:'familyname'}, function(b){
-				name.last = b
-				callback(null)
-
+				name.last = b;
+				callback(null);
 			})
 		},
 		function(callback){
@@ -69,51 +80,76 @@ function createPerson(){
 				location.type = 'current';
 				location.loc.lat = n;
 				callback(null);
-
 			})
 		},
 		function(callback){
 			random.integers({minimum:0,maximum:100}, function(e,n){
 				location.loc.lng = n;
-				callback(null)
-
+				callback(null);
 			})
 		},
 		function(callback){
 			random.integers({minimum:0,maximum:1}, function(e,n){
-				(n==1?gender='female':gender='male')
-				callback(null)
-				
+				(n==1?gender='female':gender='male');
+				callback(null);
 			})
 		},
 		function(callback){
 			random.integers({minimum:800,maximum:1600}, function(e,n){
-				money = n
-				callback(null)
-
+				money = n;
+				callback(null);
 			})
 		},
+		function(callback){
+			random.integers({minimum:90,maximum:100}, function(e,n){
+				health = n;
+				callback(null);
+			})
+		},		
 	], function(err, results){
-		console.log(name)
-		console.log(location)
+		if(err){
+			console.log('createPerson aborted')
+			return err
+		}
 		var newPerson = new People({
 				name: name,
 				money: money,
 				DOB: Date.now(),
-				//locations: [location],
-				locations: array(),
+				health: health,
+				//locations: location,
+				locations: [JSON.stringify(location)],
 				gender: gender,
 				lastUpdate: Date.now()
 		})
 
-		newPerson.location.push(location);
+		//newPerson.locations.push({type: location.type, loc: {lat: location.loc.lat, lng: location.loc.lng}});
 
 		newPerson.save(function(err, p){
 			if(err)
 				console.log(err)
 
 			console.log(p)
+
+			//create an Item for this person
+			var newItem = new Item({
+				name: 'Axe',
+				owner_id: p._id,
+				condition: 100,
+				level: 1,
+				type: {
+					tool: true
+				}
+			})
+
+			newItem.save(function(err, i){
+				if(err)
+					console.log(err)
+
+				console.log(i)
+			})
+
 		})
+
 	})
 	
 	
