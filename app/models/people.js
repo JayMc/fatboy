@@ -36,6 +36,11 @@ var peopleSchema = mongoose.Schema({
 	money: Number,
 	DOB: Date,
 	DOD: Date,
+	gender: String,
+	pregnant: {
+		state: Boolean,
+		since: Date
+	},
 	health: Number,
 	mood: String,
 	personality: {
@@ -46,11 +51,11 @@ var peopleSchema = mongoose.Schema({
 		intelligence: Number,
 	},
 	locations: [{
-			type: String,
-			loc: [{
+			type: String, //current location / home
+			loc: {
 				lat: Number,
 				lng: Number
-			}]
+			}
 	}],
 	trade: {
 		buying:[{

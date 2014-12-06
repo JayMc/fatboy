@@ -37,4 +37,8 @@ app.use(function (req, res, next) {
 
 // routes ==================================================
 require('./app/routes')(app);
+
+//simulation
+require('./app/sim')(app);
+
 app.listen(7373);
