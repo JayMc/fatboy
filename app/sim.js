@@ -1,12 +1,13 @@
 var People = require('./models/people');
 var Item = require('./models/item');
+var Resource = require('./models/resource');
 
 var random = require('node-random');
 var importcsv = require('./importcsv');
 var async = require('async')
 
 //create a guy
-createPerson()
+//createPerson()
 
 //start the game loop
 var interval = setInterval(checkTime, 60000)
@@ -15,7 +16,7 @@ var interval = setInterval(checkTime, 60000)
 //get Date obj and checks mins of equal to 00 or something
 function checkTime(){
 	var d = new Date
-	if(d.getMinutes() % 5 == 0){
+	if(d.getMinutes() % 1 == 0){
 		sim();
 	}
 }
@@ -23,27 +24,83 @@ function checkTime(){
 function sim(){
 	console.log('sim called every 5 mins')
 
-	//run modules against people
+	var healthToTake = 2;
 
-	//get people not updated recently
+		async.series([
+		function(callback){
+			//first check remain quota from random.org
+			random.quota(function(error, quota) {
+		    	console.log("Remaining bytes: " + quota)
+		    	if(quota<=1){
+		    		callback(true)
+		    	}else{
+		    		callback(null)
+		    	}
+			});
+		},
+		function(callback){
+			random.integers({minimum:0,maximum:5}, function(e,n){
+				healthToTake = n;
+				callback(null);
+			})
+		}	
+		], function(err, results){
+			if(err){
+				console.log('modify person aborted, random.org quota exhausted')
+				return
+			}
 
-	//check health
+			//run modules against people
 
-	//check pregnancies due
+			//get people not updated recently
+			var query = {DOD: null}
+			People.random(query, function(err, person){
+				if(err){
+					console.log(err)
+					return
+					
+				}
 
-	//person wants to sell something
+				console.log('found a person')
+				console.log(person)
+				//check health
+				if(person.health <= 0){
+					//death
+				}
 
-	//person wants to buy something
+				//check pregnancies due
 
-	//set last update date
+				//person wants to sell something
+
+				//person wants to buy something
+
+				//minus health slightly
+				person.health -= healthToTake;
+					//if health <= 0 then death
+
+				//set last update date
+				person.lastUpdate = Date.now()
+
+				person.save(function(err, person){
+					if(err){
+						console.log(err)
+						return	
+						
+					}
+					
+					console.log('save a person')		
+					console.log(person)
+				})
+
+		})
+
+		
+	})
+
 
 }
 
 function createPerson(){
-
-	importcsv.getFromList({type:'malefirstname'},function(b){
-		console.log(b)
-	})
 
 	var location = {type:'', loc: {lat:0, lng: 0}};
 	var name = {};

@@ -11,3 +11,5 @@ items:
 		traded: Date,
 		price: 0
 	}]
+
+//when an item is destroyed, (1 or 2) new ones are randomly dropped somewhere

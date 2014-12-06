@@ -38,16 +38,13 @@ module.exports = {
 
 		csvConverter.on("record_parsed", function(resultRow, rawRow, rowIndex){
 			//console.log(rawRow[0]);
-			results.push(rawRow[0]);return 'jas'
+			results.push(rawRow[0]);
 		});
 
 		//end_parsed will be emitted once parsing finished
 		csvConverter.on("end_parsed", function(jsonObj){
 		
 		   	results = self.shuffle(results)
-		   	//console.log(results[0])
-			//return results.shift();
-			//return results[0];
 			cb(self.capitaliseFirstLetter(results[0]))
 		});
 

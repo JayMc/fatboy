@@ -74,4 +74,15 @@ var peopleSchema = mongoose.Schema({
 	lastUpdate: Date
 })
 
+peopleSchema.statics.random = function(query, cb) {
+	this.count(function(err, count) {
+		if (err)
+			return cb(err);
+
+		var rand = Math.floor(Math.random() * count);
+		this.findOne(query).skip(rand).exec(cb);
+
+	}.bind(this));
+}; 
+
 module.exports = mongoose.model('People', peopleSchema)
